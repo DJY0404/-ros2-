@@ -1,0 +1,4 @@
+ImageServiceServer:
+  ros__parameters:
+    path: "../capture/"
+    type: ".jpg"

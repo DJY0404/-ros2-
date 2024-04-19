@@ -5,7 +5,7 @@ class StillShotClient : public rclcpp::Node {
 public:
     StillShotClient() : Node("still_shot_client") {
         // Create a client to call the capture_still_shot service
-        client_ = this->create_client<std_srvs::srv::Trigger>("capture_still_shot");
+        client_ = this->create_client<std_srvs::srv::Trigger>("/capture_still_shot");
 
         // Call the service when the node is started
         this->call_service();

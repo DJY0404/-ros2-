@@ -3,6 +3,7 @@
 #include "cv_bridge/cv_bridge.h"
 #include <opencv2/opencv.hpp>
 #include "std_srvs/srv/trigger.hpp"
+#include "msgspack/srv/testsrv.hpp"
 
 
 class ImageServiceServer : public rclcpp::Node {
@@ -14,13 +15,23 @@ public:
 
        // Create the capture_still_shot service
         capture_service_ = this->create_service<std_srvs::srv::Trigger>(
-            "capture_still_shot", std::bind(&ImageServiceServer::capture_still_shot, this, std::placeholders::_1,std::placeholders::_2));
+            "/capture_still_shot", std::bind(&ImageServiceServer::capture_still_shot, this, std::placeholders::_1, std::placeholders::_2));
+   
+        test_sevice_ = this->create_service<msgspack::srv::Testsrv>(
+            "/test_node", std::bind(&ImageServiceServer::test_callback,this, std::placeholders::_1, std::placeholders::_2));
+        
+   
+   
     }
+
+
 
 private:
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr capture_service_;
-
+    sensor_msgs::msg::Image::SharedPtr latest_image_msg_;
+    rclcpp::Service<msgspack::srv::Testsrv>::SharedPtr test_sevice_;
+    
     void image_callback(const sensor_msgs::msg::Image::SharedPtr msg) {
         try {
             // Convert ROS Image message to OpenCV Mat
@@ -30,7 +41,8 @@ private:
             cv::imshow("Received Image", cv_ptr->image);
             latest_image_msg_ = msg;
             cv::waitKey(1);
-        } catch (cv_bridge::Exception& e) {
+        } 
+        catch (cv_bridge::Exception& e) {
             RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
         }
     }
@@ -69,13 +81,38 @@ private:
             RCLCPP_INFO(this->get_logger(), "Still shot captured and saved at: %s", save_path.c_str());
             response->success = true;
             response->message = "Still shot captured and saved";
-        } catch (cv_bridge::Exception& e) {
+        } 
+        catch (cv_bridge::Exception& e) {
             RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
             response->success = false;
             response->message = "cv_bridge exception";
         }
     }
-    sensor_msgs::msg::Image::SharedPtr latest_image_msg_;
+
+    void test_callback(const std::shared_ptr<msgspack::srv::Testsrv::Request> request,
+                        const std::shared_ptr<msgspack::srv::Testsrv::Response> response){
+        if(!request){
+            RCLCPP_ERROR(this->get_logger(), "Fail to test.");
+            return;
+        }
+        try
+        {
+            auto test = request->t1;
+            response->t2 = test;        
+            RCLCPP_INFO(this->get_logger(), "i will receive t2: %ld", response->t2);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        
+
+
+
+
+    }
+
+
 
 };
 

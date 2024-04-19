@@ -1,0 +1,5 @@
+#Request
+bool shot
+---
+#Response
+bool oksign

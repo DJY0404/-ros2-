@@ -12,6 +12,8 @@ find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(msgspack REQUIRED)
+
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -21,6 +23,8 @@ add_executable(WebcamPub src/WebcamPub.cpp)
 add_executable(ImageServiceServer src/ImageServiceServer.cpp)
 add_executable(CannyEdgeNode src/CannyEdgeNode.cpp)
 add_executable(StillShotClient src/StillShotClient.cpp)
+add_executable(TestClientNode src/TestClientNode.cpp)
+
 
 # Include directories
 target_include_directories(WebcamPub PRIVATE
@@ -38,6 +42,10 @@ target_include_directories(CannyEdgeNode PRIVATE
 target_include_directories(StillShotClient PRIVATE
     ${OpenCV_INCLUDE_DIRS}
 )
+
+target_include_directories(TestClientNode PRIVATE
+    ${OpenCV_INCLUDE_DIRS}
+)
 # Link libraries
 ament_target_dependencies(WebcamPub
     rclcpp
@@ -53,6 +61,7 @@ ament_target_dependencies(ImageServiceServer
     std_srvs
     cv_bridge
     OpenCV
+    msgspack
 )
 
 # Link libraries
@@ -70,6 +79,16 @@ ament_target_dependencies(StillShotClient
     sensor_msgs
     cv_bridge
     OpenCV
+)
+
+# Link libraries
+ament_target_dependencies(TestClientNode
+    rclcpp
+    std_srvs 
+    sensor_msgs
+    cv_bridge
+    OpenCV
+    msgspack
 )
 
 # Install
@@ -93,8 +112,13 @@ install(TARGETS
     DESTINATION lib/${PROJECT_NAME}
 )
 
+install(TARGETS
+TestClientNode
+    DESTINATION lib/${PROJECT_NAME}
+)
+
 install(DIRECTORY 
-  launch
+  launch param
   DESTINATION share/${PROJECT_NAME}
 )
 
