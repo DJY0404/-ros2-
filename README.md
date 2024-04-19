@@ -35,6 +35,13 @@
         ├── Camerashot.srv
         └── Testsrv.srv
 ```
+![MyNodeGraph](https://github.com/DJY0404/-ros2-/assets/55430286/1ff283d2-2f30-434d-8b0d-32dc72d34686)
+<br/>
+* WebcamPub : cam_pub 노드 실행 및 /webcam/camimage 토픽 발행
+* ImageServiceServer : /webcam/camimage 구독, StillShotClient의 스틸샷 요청 시 제공
+* CannyEdgeNode : /webcam/camimage 구독 하여 Canny Edge 적용 (rqt로 확인가능)
+* StillShotClient : 스틸샷 요청
+* TestClientNode : 서비스 콜 테스트용 노드
 ### 2.기본 세팅 <br/>
 :heavy_exclamation_mark: ros2 launch로 실행 방식 변경 예정
 <br/>
@@ -71,7 +78,7 @@ ros2 run camera StillShotClient
 (Home/capture/) <br/>
 ![CaptureInFolder](https://github.com/DJY0404/-ros2-/assets/55430286/16f58913-f356-4f0d-90b6-13511e4fb4fb) <br/>
 
-* TestClientNode (service call 테스트 용 노드)<br/>
+* TestClientNode <br/>
 
 ```
 # msgspack/srv/Testsrv
@@ -82,3 +89,7 @@ ros2 service call /test_node msgspack/srv/Testsrv "{t1: 3}"
 ![TestNodeCall](https://github.com/DJY0404/-ros2-/assets/55430286/802e9d70-405a-45bb-87ff-0d543b4dc083) <br/>
 ![TestNodeResponse](https://github.com/DJY0404/-ros2-/assets/55430286/f75642ec-9656-4e78-98f9-41a475544283) <br/>
 
+### 4. 예정 사항
+* 실행 방식 변경 : launch로 WebcamPub 및 ImageServiceServer 노드 한번에 실행
+* parameter 적용 : 스틸 샷 저장 경로 명, 스틸 샷 이름 등..
+* 기능 추가 : 영상 저장, 필터 추가 등...
