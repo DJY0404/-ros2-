@@ -4,6 +4,8 @@
 #include <opencv2/opencv.hpp>
 #include "std_srvs/srv/trigger.hpp"
 #include "msgspack/srv/testsrv.hpp"
+#include "msgspack/srv/topic_call.hpp"
+
 
 
 class ImageServiceServer : public rclcpp::Node {
@@ -20,7 +22,8 @@ public:
         test_sevice_ = this->create_service<msgspack::srv::Testsrv>(
             "/test_node", std::bind(&ImageServiceServer::test_callback,this, std::placeholders::_1, std::placeholders::_2));
         
-   
+        topic_call_service_ = this->create_service<msgspack::srv::TopicCall>(
+            "/topic_call", std::bind(&ImageServiceServer::topic_call_callback, this, std::placeholders::_1, std::placeholders::_2));
    
     }
 
@@ -31,6 +34,8 @@ private:
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr capture_service_;
     sensor_msgs::msg::Image::SharedPtr latest_image_msg_;
     rclcpp::Service<msgspack::srv::Testsrv>::SharedPtr test_sevice_;
+    rclcpp::Service<msgspack::srv::TopicCall>::SharedPtr topic_call_service_;
+
     
     void image_callback(const sensor_msgs::msg::Image::SharedPtr msg) {
         try {
@@ -90,7 +95,7 @@ private:
     }
 
     void test_callback(const std::shared_ptr<msgspack::srv::Testsrv::Request> request,
-                        const std::shared_ptr<msgspack::srv::Testsrv::Response> response){
+                       const std::shared_ptr<msgspack::srv::Testsrv::Response> response){
         if(!request){
             RCLCPP_ERROR(this->get_logger(), "Fail to test.");
             return;
@@ -105,10 +110,14 @@ private:
         {
             std::cerr << e.what() << '\n';
         }
-        
-
-
-
+    }
+    void topic_call_callback(const std::shared_ptr<msgspack::srv::TopicCall::Request> request,
+                             const std::shared_ptr<msgspack::srv::TopicCall::Response> response){
+        std::string topic_name = request->topic_name;
+        if (topic_name == "/canny_shot"){
+            response->message = "ok, i will capture canny image.";
+            RCLCPP_INFO(this->get_logger(), "Answer : %s", response->message.c_str());
+        }
 
     }
 

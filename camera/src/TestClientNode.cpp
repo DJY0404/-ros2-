@@ -7,7 +7,6 @@ public:
     TestClientNode() : Node("test_node") {
         // Create a timer to periodically call the service
         timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&TestClientNode::call_service, this));
-
         // Read parameter value
         this->declare_parameter("my_parameter", "default_value");
         parameter_value_ = this->get_parameter("my_parameter").as_string();
