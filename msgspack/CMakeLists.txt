@@ -18,6 +18,7 @@ find_package(std_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Camerashot.srv"
   "srv/Testsrv.srv"
+  "srv/TopicCall.srv"
   DEPENDENCIES builtin_interfaces
 )
 
