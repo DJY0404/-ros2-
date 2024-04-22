@@ -1,7 +1,0 @@
-# topiccall.srv
-
-string topic_name
----
-bool success
-string message
-
