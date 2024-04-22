@@ -24,6 +24,9 @@ public:
         
         topic_call_service_ = this->create_service<msgspack::srv::TopicCall>(
             "/topic_call", std::bind(&ImageServiceServer::topic_call_callback, this, std::placeholders::_1, std::placeholders::_2));
+
+        canny_subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
+            "/processed_image", 10, std::bind(&ImageServiceServer::canny_image_callback, this, std::placeholders::_1));
    
     }
 
@@ -31,10 +34,16 @@ public:
 
 private:
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr canny_subscription_;
+
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr capture_service_;
-    sensor_msgs::msg::Image::SharedPtr latest_image_msg_;
     rclcpp::Service<msgspack::srv::Testsrv>::SharedPtr test_sevice_;
     rclcpp::Service<msgspack::srv::TopicCall>::SharedPtr topic_call_service_;
+
+    sensor_msgs::msg::Image::SharedPtr kind_of_image_msg_;
+    sensor_msgs::msg::Image::SharedPtr latest_image_msg_;
+    sensor_msgs::msg::Image::SharedPtr latest_canny_image_msg_;
+
 
     
     void image_callback(const sensor_msgs::msg::Image::SharedPtr msg) {
@@ -45,6 +54,21 @@ private:
             // Process the received image (e.g., display it)
             cv::imshow("Received Image", cv_ptr->image);
             latest_image_msg_ = msg;
+            cv::waitKey(1);
+        } 
+        catch (cv_bridge::Exception& e) {
+            RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
+        }
+    }
+    
+    void canny_image_callback(const sensor_msgs::msg::Image::SharedPtr msg) {
+        try {
+            // Convert ROS Image message to OpenCV Mat
+            cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg);
+
+            // Process the received image (e.g., display it)
+            cv::imshow("Canny Image", cv_ptr->image);
+            latest_canny_image_msg_ = msg;
             cv::waitKey(1);
         } 
         catch (cv_bridge::Exception& e) {
@@ -93,7 +117,30 @@ private:
             response->message = "cv_bridge exception";
         }
     }
+    void capture(const std::string topic_name, const sensor_msgs::msg::Image::SharedPtr capture_image_msg_) {
 
+        try {
+            // Convert ROS Image message to OpenCV Mat
+            cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(capture_image_msg_);
+
+            // Define the path to save the still shot
+            std::string save_path = "../capture/";  // Adjust the file path as needed
+            std::string file_name = topic_name+"_still_shot.jpg";
+            // Save the captured frame as an image file
+            if (!cv::imwrite(save_path+file_name, cv_ptr->image)) {
+                RCLCPP_ERROR(this->get_logger(), "Failed to save still shot");
+                return;
+            }
+
+            // Log success message
+            RCLCPP_INFO(this->get_logger(), "Still shot captured and saved at: %s", save_path.c_str());
+
+        } 
+        catch (cv_bridge::Exception& e) {
+            RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
+
+        }
+    }
     void test_callback(const std::shared_ptr<msgspack::srv::Testsrv::Request> request,
                        const std::shared_ptr<msgspack::srv::Testsrv::Response> response){
         if(!request){
@@ -114,10 +161,17 @@ private:
     void topic_call_callback(const std::shared_ptr<msgspack::srv::TopicCall::Request> request,
                              const std::shared_ptr<msgspack::srv::TopicCall::Response> response){
         std::string topic_name = request->topic_name;
-        if (topic_name == "/canny_shot"){
+        if (topic_name == "/canny_edge_image"){
+            kind_of_image_msg_ = latest_canny_image_msg_;
             response->message = "ok, i will capture canny image.";
             RCLCPP_INFO(this->get_logger(), "Answer : %s", response->message.c_str());
         }
+        if (topic_name == "/still_shot"){
+            kind_of_image_msg_ = latest_image_msg_;
+            response->message = "ok, i will capture still_shot image.";
+            RCLCPP_INFO(this->get_logger(), "Answer : %s", response->message.c_str());
+        }
+        this->capture(topic_name,kind_of_image_msg_);
 
     }
 

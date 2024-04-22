@@ -28,6 +28,14 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('param')],
         output='screen'
     )
+
+    CannyEdgeNode_node = Node(
+        package='camera',
+        executable='CannyEdgeNode',
+        name='CannyEdgeNode',
+        parameters=[LaunchConfiguration('param')],
+        output='screen'
+    )
     
     ImageServiceServer_node = Node(
         package='camera',
@@ -41,6 +49,7 @@ def generate_launch_description():
     return LaunchDescription([
         param_config_arg,
         WebcamPub_node,
+        CannyEdgeNode_node,
         ImageServiceServer_node
 
     ])
